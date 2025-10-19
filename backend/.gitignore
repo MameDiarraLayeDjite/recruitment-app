@@ -1,0 +1,46 @@
+# Node.js and npm
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# Logs
+logs/
+*.log
+backend/error.log
+backend/combined.log
+
+# Backend-specific
+backend/node_modules/
+backend/uploads/  # Cloudinary upload folder
+backend/dist/    # Build output (if TypeScript or bundling used)
+
+# Frontend-specific
+frontend/node_modules/
+frontend/build/  # React build output
+
+# Docker
+docker-compose.override.yml
+*.dockerignore
+
+# Editor and OS files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing and coverage
+coverage/
+backend/coverage/
+frontend/coverage/
+
+# Monorepo temporary files
+*.tmp
+*.bak
