@@ -6,16 +6,13 @@ const routes = require('./routes/index');
 const errorHandler = require('./middlewares/errorHandler');
 const rateLimit = require('express-rate-limit');
 const sanitize = require('mongo-sanitize');
-const socketIo = require('socket.io');
-const http = require('http');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const logger = require('./utils/logger');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: '*' } });
 
+// Security and parsing middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -25,17 +22,19 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// Rate limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
 app.use('/api', limiter);
 
+// Database connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => logger.info('MongoDB connected'))
   .catch(err => logger.error('MongoDB connection error:', err));
 
+// Swagger
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
@@ -48,22 +47,13 @@ const swaggerOptions = {
   },
   apis: ['./src/controllers/*.js']
 };
-
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Main routes
 app.use('/api/v1', routes);
 
+// Global error handler
 app.use(errorHandler);
 
-// Socket.io
-io.on('connection', (socket) => {
-  logger.info(`User connected: ${socket.id}`);
-  socket.on('join', (userId) => socket.join(userId));
-  socket.on('disconnect', () => logger.info(`User disconnected: ${socket.id}`));
-});
-
-global.io = io; // Pour accès dans controllers
-
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+module.exports = app;

@@ -46,25 +46,25 @@ const registerSchema = z.object({
 exports.register = async (req, res, next) => {
   try {
     const parsed = registerSchema.safeParse(req.body);
-    if (!parsed.success) return next(new AppError(`Erreur de validation: ${parsed.error.errors.map(e => e.message).join(', ')}`, 400));
+    if (!parsed.success) return next(new AppError(`Validation error: ${parsed.error.errors.map(e => e.message).join(', ')}`, 400));
 
     const { firstName, lastName, email, password, role } = parsed.data;
     const existingUser = await User.findOne({ email });
-    if (existingUser) return next(new AppError('Email déjà enregistré', 400));
+    if (existingUser) return next(new AppError('Email already registered', 400));
 
     const newUser = await User.create({ firstName, lastName, email, password, role: role || 'employee' });
-    logger.info(`Utilisateur enregistré: ${newUser._id} avec rôle ${newUser.role}`);
+    logger.info(`User registered: ${newUser._id} with role ${newUser.role}`);
 
     // Optionnel : Envoi email de bienvenue
     await sendEmail({
       to: email,
-      subject: 'Bienvenue dans l\'application de recrutement',
-      text: `Bonjour ${firstName}, votre compte a été créé avec succès.`,
+      subject: 'Welcome to the Recruitment App',
+      text: `Hello ${firstName}, your account has been successfully created.`,
     });
 
-    res.status(201).json({ message: 'Utilisateur enregistré', userId: newUser._id });
+    res.status(201).json({ message: 'User registered', userId: newUser._id });
   } catch (err) {
-    logger.error(`Erreur lors de l'enregistrement: ${err.message}`);
+    logger.error(`Error registering user: ${err.message}`);
     next(err);
   }
 };
@@ -96,11 +96,11 @@ exports.login = async (req, res, next) => {
     console.log('Environment JWT_SECRET:', process.env.JWT_SECRET);
     console.log('Environment JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
     const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) return next(new AppError(`Erreur de validation: ${parsed.error.errors.map(e => e.message).join(', ')}`, 400));
+    if (!parsed.success) return next(new AppError(`Validation error: ${parsed.error.errors.map(e => e.message).join(', ')}`, 400));
 
     const { email, password } = parsed.data;
     const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) return next(new AppError('Identifiants invalides', 400));
+    if (!user || !(await user.comparePassword(password))) return next(new AppError('Invalid credentials', 400));
 
     user.lastLogin = Date.now();
     await user.save();
@@ -110,15 +110,15 @@ exports.login = async (req, res, next) => {
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
 
-    logger.info(`Connexion réussie pour utilisateur: ${user._id}`);
+    logger.info(`Login successful for user: ${user._id}`);
 
-    res.json({ 
-      message: 'Connexion réussie', 
-      accessToken, 
-      user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } 
+    res.json({
+      message: 'Login successful',
+      accessToken,
+      user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role }
     });
   } catch (err) {
-    logger.error(`Erreur lors de la connexion: ${err.message}`);
+    logger.error(`Error logging in: ${err.message}`);
     next(err);
   }
 };
@@ -137,21 +137,21 @@ exports.login = async (req, res, next) => {
  */
 exports.refreshToken = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return next(new AppError('Aucun token de rafraîchissement', 401));
+  if (!refreshToken) return next(new AppError('No refresh token provided', 401));
 
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.id);
-    if (!user) return next(new AppError('Token invalide', 401));
+    if (!user) return next(new AppError('Invalid token', 401));
 
     const accessToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
-    logger.info(`Token rafraîchi pour utilisateur: ${user._id}`);
+    logger.info(`Token refreshed for user: ${user._id}`);
 
     res.json({ accessToken });
   } catch (err) {
-    logger.error(`Erreur lors du rafraîchissement du token: ${err.message}`);
-    next(new AppError('Token de rafraîchissement invalide', 401));
+    logger.error(`Error refreshing token: ${err.message}`);
+    next(new AppError('Invalid refresh token', 401));
   }
 };
 
@@ -167,6 +167,6 @@ exports.refreshToken = async (req, res, next) => {
  */
 exports.logout = (req, res, next) => {
   res.clearCookie('refreshToken');
-  logger.info('Déconnexion réussie');
-  res.json({ message: 'Déconnexion réussie' });
+  logger.info('Logged out successfully');
+  res.json({ message: 'Logged out successfully' });
 };
