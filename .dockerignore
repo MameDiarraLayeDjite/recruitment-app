@@ -1,0 +1,38 @@
+# -------------------------------
+# Node & dependencies
+# -------------------------------
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# -------------------------------
+# Environment & secrets
+# -------------------------------
+.env
+.env.local
+.env.development
+.env.production
+
+# -------------------------------
+# System & IDE files
+# -------------------------------
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# -------------------------------
+# Git & Docker
+# -------------------------------
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+
+# -------------------------------
+# Tests & coverage reports
+# -------------------------------
+coverage
+jest-results.json
+test-results/
