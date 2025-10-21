@@ -7,6 +7,7 @@ const auth = require('../middlewares/auth');
 const authController = require('../controllers/authController');
 const auditLogController = require('../controllers/auditLogController');
 const userController = require('../controllers/userController');
+const jobController = require('../controllers/jobController');
 
 const router = express.Router();
 
@@ -24,6 +25,14 @@ router.get('/users/:id', userController.getUserById);
 router.post('/users', userController.createUser);
 router.put('/users/:id', userController.updateUser);
 router.delete('/users/:id', userController.deleteUser);
+
+router.post('/jobs', jobController.createJob);
+router.get('/jobs', jobController.getAllJobs);
+router.get('/jobs/:id', jobController.getJobById);
+router.put('/jobs/:id', jobController.updateJob);
+router.delete('/jobs/:id', jobController.deleteJob);
+router.post('/jobs/:id/publish', jobController.publishJob);
+router.post('/jobs/:id/close', jobController.closeJob);
 
 
 router.get('/audit-logs', auditLogController.getAuditLogs);

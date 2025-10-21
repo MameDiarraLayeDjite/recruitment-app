@@ -66,3 +66,6 @@ io.on('connection', (socket) => {
 global.io = io; // Pour accès dans controllers
 
 const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+});
