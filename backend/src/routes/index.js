@@ -10,6 +10,7 @@ const userController = require('../controllers/userController');
 const jobController = require('../controllers/jobController');
 const applicationController = require('../controllers/applicationController');
 const notificationController = require('../controllers/notificationController');
+const interviewController = require('../controllers/interviewController');
 
 const router = express.Router();
 
@@ -44,6 +45,12 @@ router.post('/applications/:id/notes', applicationController.addNoteToApplicatio
 
 router.get('/notifications', notificationController.getNotifications);
 router.put('/notifications/:id/read', notificationController.markAsRead);
+
+router.post('/applications/:applicationId/interviews', interviewController.createInterview);
+router.get('/interviews/:id', interviewController.getInterviewById);
+router.put('/interviews/:id', interviewController.updateInterview);
+router.post('/interviews/:id/complete', interviewController.completeInterview);
+router.get('/interviews/:id/export', interviewController.exportInterviewICal);
 
 router.get('/audit-logs', auditLogController.getAuditLogs);
 
