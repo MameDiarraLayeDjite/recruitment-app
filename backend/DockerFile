@@ -2,19 +2,19 @@
 FROM node:20-alpine
 
 # Create app directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package files
+# Copy package files first (pour installer dépendances)
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy all source code
-COPY . .
+# Copier le reste du code n'est plus nécessaire pour dev, car on monte un volume
+# COPY . .
 
 # Make wait-for-it.sh executable
 RUN chmod +x wait-for-it.sh
 
-# Command to wait for DB then start app
+# Commande pour attendre DB puis lancer l'app avec nodemon
 CMD ["./wait-for-it.sh", "mongo:27017", "--", "./wait-for-it.sh", "redis:6379", "--", "npm", "run", "dev"]

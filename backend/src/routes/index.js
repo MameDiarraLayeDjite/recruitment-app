@@ -8,6 +8,8 @@ const authController = require('../controllers/authController');
 const auditLogController = require('../controllers/auditLogController');
 const userController = require('../controllers/userController');
 const jobController = require('../controllers/jobController');
+const applicationController = require('../controllers/applicationController');
+const notificationController = require('../controllers/notificationController');
 
 const router = express.Router();
 
@@ -34,6 +36,14 @@ router.delete('/jobs/:id', jobController.deleteJob);
 router.post('/jobs/:id/publish', jobController.publishJob);
 router.post('/jobs/:id/close', jobController.closeJob);
 
+router.post('/jobs/:jobId/apply', upload.single('resume'), applicationController.createApplication);
+router.get('/applications', applicationController.getAllApplications);
+router.get('/jobs/:jobId/applications', applicationController.getApplicationsByJob);
+router.put('/applications/:id/status', applicationController.updateApplicationStatus);
+router.post('/applications/:id/notes', applicationController.addNoteToApplication);
+
+router.get('/notifications', notificationController.getNotifications);
+router.put('/notifications/:id/read', notificationController.markAsRead);
 
 router.get('/audit-logs', auditLogController.getAuditLogs);
 
