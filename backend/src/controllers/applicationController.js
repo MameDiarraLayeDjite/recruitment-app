@@ -8,65 +8,149 @@ const cloudinary = require('../config/cloudinary');
 const fs = require('fs');
 const { sendEmail } = require('../utils/mailer'); 
 const { z } = require('zod');
+const logger = require('../utils/logger');
 
 const createApplicationSchema = z.object({
   jobId: z.string(),
   coverLetter: z.string().optional(),
-  // Resume handled via file
 });
 
 exports.createApplication = async (req, res) => {
   try {
     const parsed = createApplicationSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ errors: parsed.error.errors });
+    if (!parsed.success) {
+      return res.status(400).json({ errors: parsed.error.errors });
+    }
 
     const { jobId, coverLetter } = parsed.data;
-    if (!req.file) return res.status(400).json({ message: 'Resume required' });
+    if (!req.file) {
+      return res.status(400).json({ message: 'Resume required' });
+    }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, { folder: 'recruitment_app_resumes' });
+    // ✅ Upload resume to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'recruitment_app_resumes',
+      resource_type: 'auto',
+    });
     fs.unlinkSync(req.file.path);
 
+    // ✅ Ensure job exists
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: 'Job not found' });
 
+    // ✅ Ensure user info is available (auth middleware)
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Unauthorized - user missing' });
+    }
+
+    // ✅ Create the application
     const application = await Application.create({
-      applicant: req.user._id,
+      applicant: req.user._id,  // 🔥 REQUIRED field
       job: jobId,
       resume: result.secure_url,
-      coverLetter,
+      coverLetter: coverLetter || '',
       candidateInfo: {
         name: `${req.user.firstName} ${req.user.lastName}`,
         email: req.user.email,
       },
     });
 
-    // Notify applicant
+    // ✅ Send confirmation email to applicant
     await sendEmail({
       to: req.user.email,
       subject: 'Application Received',
       text: `Your application for ${job.title} has been received.`,
     });
 
-    // Notify HR/creator
+    // ✅ Notify recruiter
     const recruiter = await User.findById(job.createdBy);
-    await sendEmail({
-      to: recruiter.email,
-      subject: 'New Application',
-      text: `${req.user.firstName} ${req.user.lastName} applied for ${job.title}. Resume: ${application.resume}`,
+    if (recruiter) {
+      await sendEmail({
+        to: recruiter.email,
+        subject: 'New Application',
+        text: `${req.user.firstName} ${req.user.lastName} applied for ${job.title}. Resume: ${application.resume}`,
+      });
+
+      await Notification.create({
+        user: recruiter._id,
+        type: 'new_application',
+        payload: { applicationId: application._id },
+      });
+    }
+
+    // ✅ Audit log
+    await AuditLog.create({
+      actor: req.user._id,
+      action: 'create_application',
+      targetType: 'Application',
+      targetId: application._id,
     });
-
-    // Create notification
-    await Notification.create({ user: job.createdBy, type: 'new_application', payload: { applicationId: application._id } });
-
-    await AuditLog.create({ actor: req.user._id, action: 'create_application', targetType: 'Application', targetId: application._id });
 
     res.status(201).json(application);
   } catch (err) {
+    console.error('ERROR in createApplication:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
-logger.info(`Interview created: ${interview._id}`);
+
+// exports.createApplication = async (req, res) => {
+//   try {
+//     const parsed = createApplicationSchema.safeParse(req.body);
+//     if (!parsed.success) return res.status(400).json({ errors: parsed.error.errors });
+
+//     if (!req.user || !req.user.id) {
+//       logger.error('Unauthorized access: no user in request');
+//       return res.status(401).json({ message: 'Unauthorized: no applicant info' });
+//     }
+
+//     const { jobId, coverLetter } = parsed.data;
+//     if (!req.file) return res.status(400).json({ message: 'Resume required' });
+
+//     // Upload to Cloudinary
+//     const result = await cloudinary.uploader.upload(req.file.path, { folder: 'recruitment_app_resumes' });
+//     fs.unlinkSync(req.file.path);
+
+//     const job = await Job.findById(jobId);
+//     if (!job) return res.status(404).json({ message: 'Job not found' });
+
+//     const application = await Application.create({
+//       applicant: req.user._id,
+//       job: jobId,
+//       resume: result.secure_url,
+//       coverLetter,
+//       candidateInfo: {
+//         name: `${req.user.firstName} ${req.user.lastName}`,
+//         email: req.user.email,
+//       },
+//     });
+
+//     // Notify applicant
+//     await sendEmail({
+//       to: req.user.email,
+//       subject: 'Application Received',
+//       text: `Your application for ${job.title} has been received.`,
+//     });
+
+//     // Notify HR/creator
+//     const recruiter = await User.findById(job.createdBy);
+//     await sendEmail({
+//       to: recruiter.email,
+//       subject: 'New Application',
+//       text: `${req.user.firstName} ${req.user.lastName} applied for ${job.title}. Resume: ${application.resume}`,
+//     });
+
+//     // Create notification
+//     await Notification.create({ user: job.createdBy, type: 'new_application', payload: { applicationId: application._id } });
+
+//     await AuditLog.create({ actor: req.user._id, action: 'create_application', targetType: 'Application', targetId: application._id });
+
+//     res.status(201).json(application);
+//   } catch (err) {
+//     logger.error(`Error creating application: ${err.message}`);
+//     console.error('ERROR in createApplication:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 exports.getAllApplications = async (req, res) => {
   if (!['admin', 'hr'].includes(req.user.role)) return res.status(403).json({ message: 'Forbidden' });
   try {
@@ -131,6 +215,8 @@ exports.addNoteToApplication = async (req, res) => {
     await AuditLog.create({ actor: req.user._id, action: 'add_note', targetType: 'Application', targetId: id, details: { text } });
     res.json(application);
   } catch (err) {
+    logger.error(`Error adding note to application ${id}: ${err.message}`);
+    console.error('ERROR in addNoteToApplication:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };

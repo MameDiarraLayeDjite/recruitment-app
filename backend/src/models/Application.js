@@ -11,7 +11,7 @@ const applicationSchema = new mongoose.Schema({
     email: { type: String },
     phone: { type: String },
   },
-  status: { type: String, enum: ['pending', 'in_review', 'interview', 'offer', 'rejected'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'in_review', 'interview', 'offer', 'rejected', 'accepted'], default: 'pending' },
   notes: [{ 
     text: { type: String },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

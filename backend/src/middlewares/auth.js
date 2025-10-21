@@ -18,6 +18,7 @@ module.exports = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+
     // Optional: check token blacklist in Redis (key "bl_<token>")
     try {
       if (redisClient && typeof redisClient.get === 'function') {
@@ -30,7 +31,10 @@ module.exports = async (req, res, next) => {
       console.error('Redis token blacklist check failed:', redisErr.message || redisErr);
     }
 
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      _id: decoded._id || decoded.id,
+    };
     return next();
   } catch (err) {
     return next(new AppError('Invalid token', 401));
