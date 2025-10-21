@@ -11,6 +11,7 @@ const jobController = require('../controllers/jobController');
 const applicationController = require('../controllers/applicationController');
 const notificationController = require('../controllers/notificationController');
 const interviewController = require('../controllers/interviewController');
+const reportingController = require('../controllers/reportingController');
 
 const router = express.Router();
 
@@ -51,6 +52,9 @@ router.get('/interviews/:id', interviewController.getInterviewById);
 router.put('/interviews/:id', interviewController.updateInterview);
 router.post('/interviews/:id/complete', interviewController.completeInterview);
 router.get('/interviews/:id/export', interviewController.exportInterviewICal);
+
+router.get('/reports/export', reportingController.exportApplicationsCSV);
+router.get('/reports/pipeline', reportingController.getPipelineMetrics);
 
 router.get('/audit-logs', auditLogController.getAuditLogs);
 

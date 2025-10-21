@@ -26,7 +26,7 @@ services:
   backend:
     build: ./backend
     container_name: backend-app
-    command: npm run dev       
+    command: sh -c "npm install && npm run dev"
     ports:
       - "4000:4000"
     env_file:
@@ -36,9 +36,10 @@ services:
       - redis
     volumes:
       - ./backend:/usr/src/app       # monte le code local
-      - /usr/src/app/node_modules    # garde les node_modules installés dans le conteneur
+      - backend_node_modules:/usr/src/app/node_modules
     restart: unless-stopped
 
 volumes:
   mongo_data:
   redis_data:
+  backend_node_modules:

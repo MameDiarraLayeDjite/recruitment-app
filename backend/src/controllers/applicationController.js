@@ -66,7 +66,7 @@ exports.createApplication = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
+logger.info(`Interview created: ${interview._id}`);
 exports.getAllApplications = async (req, res) => {
   if (!['admin', 'hr'].includes(req.user.role)) return res.status(403).json({ message: 'Forbidden' });
   try {
