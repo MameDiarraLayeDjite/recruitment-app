@@ -18,6 +18,8 @@ import RegisterPage from './pages/auth/RegisterPage';
 // import Dashboard from './pages/dashboard/Dashboard';
 // import JobsPage from './pages/jobs/JobsPage';
 // import JobDetailsPage from './pages/jobs/JobDetailsPage';
+import CreateJobPage from './pages/jobs/CreateJobPage';
+import EditJobPage from './pages/jobs/EditJobPage';
 // import ApplicationsPage from './pages/applications/ApplicationsPage';
 // import InterviewsPage from './pages/interviews/InterviewsPage';
 
