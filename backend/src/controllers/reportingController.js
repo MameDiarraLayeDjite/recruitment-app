@@ -32,7 +32,7 @@ const redisClient = require('../config/redis');
  *         description: Accès interdit
  */
 exports.exportApplicationsCSV = async (req, res, next) => {
-  if (!['admin', 'hr'].includes(req.user.role)) return next(new AppError('Accès interdit', 403));
+  if (!['admin', 'hr'].includes(req.user.role)) return next(new AppError('Access Denied', 403));
 
   try {
     const { from, to } = req.query;
@@ -45,25 +45,25 @@ exports.exportApplicationsCSV = async (req, res, next) => {
       .populate('job', 'title department');
 
     const fields = [
-      { label: 'Nom Candidat', value: row => `${row.candidateInfo.name || `${row.applicant.firstName} ${row.applicant.lastName}`}` },
+      { label: 'Applicant Name', value: row => `${row.candidateInfo.name || `${row.applicant.firstName} ${row.applicant.lastName}`}` },
       { label: 'Email', value: row => row.candidateInfo.email || row.applicant.email },
-      { label: 'Titre Offre', value: 'job.title' },
-      { label: 'Département', value: 'job.department' },
-      { label: 'Statut', value: 'status' },
-      { label: 'CV URL', value: 'resume' },
-      { label: 'Date Candidature', value: row => row.createdAt.toISOString() }
+      { label: 'Offer Title', value: row => row.job.title },
+      { label: 'Department', value: row => row.job.department },
+      { label: 'Status', value: row => row.status },
+      { label: 'CV URL', value: row => row.resume },
+      { label: 'Application Date', value: row => row.createdAt.toISOString() }
     ];
 
     const parser = new Parser({ fields });
     const csv = parser.parse(applications);
 
-    logger.info('Export CSV des candidatures généré');
+    logger.info('Applications CSV export generated');
 
     res.header('Content-Type', 'text/csv');
-    res.attachment('candidatures_report.csv');
+    res.attachment('applications_report.csv');
     res.send(csv);
   } catch (err) {
-    logger.error(`Erreur lors de l'export CSV: ${err.message}`);
+    logger.error(`Error exporting CSV: ${err.message}`);
     next(err);
   }
 };
@@ -81,13 +81,13 @@ exports.exportApplicationsCSV = async (req, res, next) => {
  *         description: Accès interdit
  */
 exports.getPipelineMetrics = async (req, res, next) => {
-  if (!['admin', 'hr'].includes(req.user.role)) return next(new AppError('Accès interdit', 403));
+  if (!['admin', 'hr'].includes(req.user.role)) return next(new AppError('Access Denied', 403));
 
   const cacheKey = 'pipeline_metrics';
   try {
     const cached = await redisClient.get(cacheKey);
     if (cached) {
-      logger.info('Métriques servies depuis le cache');
+      logger.info('Metrics served from cache');
       return res.json(JSON.parse(cached));
     }
 
@@ -108,11 +108,11 @@ exports.getPipelineMetrics = async (req, res, next) => {
 
     await redisClient.setEx(cacheKey, 600, JSON.stringify(response)); // 10 min
 
-    logger.info('Métriques du pipeline récupérées');
+    logger.info('Metrics pipeline retrieved');
 
     res.json(response);
   } catch (err) {
-    logger.error(`Erreur lors de la récupération des métriques: ${err.message}`);
+    logger.error(`Error retrieving metrics: ${err.message}`);
     next(err);
   }
 };
