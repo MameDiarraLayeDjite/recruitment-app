@@ -15,9 +15,9 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
 // Pages protégées
-// import Dashboard from './pages/dashboard/Dashboard';
-// import JobsPage from './pages/jobs/JobsPage';
-// import JobDetailsPage from './pages/jobs/JobDetailsPage';
+import Dashboard from './pages/dashboard/Dashboard';
+import JobsPage from './pages/jobs/JobsPage';
+import JobDetailsPage from './pages/jobs/JobDetailsPage';
 import CreateJobPage from './pages/jobs/CreateJobPage';
 import EditJobPage from './pages/jobs/EditJobPage';
 // import ApplicationsPage from './pages/applications/ApplicationsPage';
@@ -53,17 +53,19 @@ function App() {
               </Route>
 
               {/* Routes protégées */}
-              {/* <Route path="/app" element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="jobs" element={<JobsPage />} />
-                <Route path="jobs/:id" element={<JobDetailsPage />} />
-                <Route path="applications" element={<ApplicationsPage />} />
-                <Route path="interviews" element={<InterviewsPage />} />
-              </Route> */}
+              <Route path="/app" element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="jobs" element={<JobsPage />} />
+                  <Route path="jobs/new" element={<CreateJobPage />} />
+                  <Route path="jobs/:id" element={<JobDetailsPage />} />
+                  <Route path="jobs/:id/edit" element={<EditJobPage />} />
+                  {/* <Route path="applications" element={<ApplicationsPage />} />
+                  <Route path="interviews" element={<InterviewsPage />} /> */}
+                </Route>  
             </Routes>
           {/* </NotificationProvider> */}
         </AuthProvider>
@@ -73,3 +75,4 @@ function App() {
 }
 
 export default App;
+
