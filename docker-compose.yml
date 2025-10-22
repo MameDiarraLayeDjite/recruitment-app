@@ -1,9 +1,6 @@
 version: '3.9'
 
 services:
-  # -----------------------
-  # MongoDB
-  # -----------------------
   mongo:
     image: mongo:7
     container_name: mongo-db
@@ -17,9 +14,6 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  # -----------------------
-  # Redis
-  # -----------------------
   redis:
     image: redis:7
     container_name: redis-server
@@ -29,13 +23,10 @@ services:
     volumes:
       - redis_data:/data
 
-  # -----------------------
-  # Backend Node.js
-  # -----------------------
   backend:
     build: ./backend
     container_name: backend-app
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     ports:
       - "4000:4000"
     env_file:
@@ -44,10 +35,11 @@ services:
       - mongo
       - redis
     volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./backend:/usr/src/app       # monte le code local
+      - backend_node_modules:/usr/src/app/node_modules
     restart: unless-stopped
 
 volumes:
   mongo_data:
   redis_data:
+  backend_node_modules:

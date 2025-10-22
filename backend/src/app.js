@@ -50,7 +50,22 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocs);
+});
+
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerDocs);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, {
+  swaggerOptions: {
+    url: '/api-docs.json'
+  }
+}));
 
 app.use('/api/v1', routes);
 
@@ -66,3 +81,6 @@ io.on('connection', (socket) => {
 global.io = io; // Pour accès dans controllers
 
 const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+});

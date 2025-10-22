@@ -105,8 +105,19 @@ exports.login = async (req, res, next) => {
     user.lastLogin = Date.now();
     await user.save();
 
-    const accessToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+    const accessToken = jwt.sign(
+      {
+        _id: user._id,
+        role: user.role,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    const refreshToken = jwt.sign({ _id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
 
