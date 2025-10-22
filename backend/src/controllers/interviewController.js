@@ -2,8 +2,9 @@ const Interview = require('../models/Interview');
 const Application = require('../models/Application');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const { sendEmail } = require('../utils/mailer');
-const ical = require('ical-generator');
+const ical = require('ical-generator').default;
 const { z } = require('zod');
 const logger = require('../utils/logger');
 const AppError = require('../utils/errors');
@@ -74,7 +75,7 @@ exports.createInterview = async (req, res, next) => {
     // Real-time notif
     if (application.applicant) global.io.to(application.applicant.toString()).emit('interview_scheduled', { interviewId: interview._id });
 
-    await AuditLog.create({ actor: req.user.id, action: 'create_interview', targetType: 'Interview', targetId: interview._id });
+    await AuditLog.create({ actor: req.user._id, action: 'create_interview', targetType: 'Interview', targetId: interview._id });
 
     logger.info(`Interview created: ${interview._id}`);
 
@@ -158,7 +159,7 @@ exports.updateInterview = async (req, res, next) => {
     const interview = await Interview.findByIdAndUpdate(req.params.id, parsed.data, { new: true });
     if (!interview) return next(new AppError('Interview not found', 404));
 
-    await AuditLog.create({ actor: req.user.id, action: 'update_interview', targetType: 'Interview', targetId: interview._id, details: parsed.data });
+    await AuditLog.create({ actor: req.user._id, action: 'update_interview', targetType: 'Interview', targetId: interview._id, details: parsed.data });
 
     logger.info(`Interview updated: ${interview._id}`);
 
@@ -207,7 +208,7 @@ exports.completeInterview = async (req, res, next) => {
     const interview = await Interview.findByIdAndUpdate(req.params.id, { status: 'completed', evaluation }, { new: true });
     if (!interview) return next(new AppError('Interview not found', 404));
 
-    await AuditLog.create({ actor: req.user.id, action: 'complete_interview', targetType: 'Interview', targetId: interview._id, details: evaluation });
+    await AuditLog.create({ actor: req.user._id, action: 'complete_interview', targetType: 'Interview', targetId: interview._id, details: evaluation });
 
     logger.info(`Interview completed: ${interview._id}`);
 
