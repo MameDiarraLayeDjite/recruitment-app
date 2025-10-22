@@ -11,6 +11,7 @@ const http = require('http');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const logger = require('./utils/logger');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
@@ -48,6 +49,12 @@ const swaggerOptions = {
   },
   apis: ['./src/controllers/*.js']
 };
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true, 
+}));
+
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
