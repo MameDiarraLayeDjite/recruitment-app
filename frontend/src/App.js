@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
-// import { NotificationProvider } from './contexts/NotificationContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -20,7 +20,7 @@ import JobsPage from './pages/jobs/JobsPage';
 import JobDetailsPage from './pages/jobs/JobDetailsPage';
 import CreateJobPage from './pages/jobs/CreateJobPage';
 import EditJobPage from './pages/jobs/EditJobPage';
-// import ApplicationsPage from './pages/applications/ApplicationsPage';
+import ApplicationsPage from './pages/applications/ApplicationsPage';
 // import InterviewsPage from './pages/interviews/InterviewsPage';
 
 // Composants de route protégée
@@ -43,7 +43,7 @@ function App() {
       <CssBaseline />
       <Router>
         <AuthProvider>
-          {/* <NotificationProvider> */}
+          <NotificationProvider>
             <Routes>
               {/* Routes publiques */}
               <Route path="/" element={<PublicLayout />}>
@@ -63,11 +63,11 @@ function App() {
                   <Route path="jobs/new" element={<CreateJobPage />} />
                   <Route path="jobs/:id" element={<JobDetailsPage />} />
                   <Route path="jobs/:id/edit" element={<EditJobPage />} />
-                  {/* <Route path="applications" element={<ApplicationsPage />} />
-                  <Route path="interviews" element={<InterviewsPage />} /> */}
+                  <Route path="applications" element={<ApplicationsPage />} />
+                  {/* <Route path="interviews" element={<InterviewsPage />} /> */} 
                 </Route>  
             </Routes>
-          {/* </NotificationProvider> */}
+          </NotificationProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>
